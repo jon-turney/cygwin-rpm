@@ -2,7 +2,7 @@
 
 Name:           cygwin
 Version:        2.9.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Cygwin cross-compiler runtime
 
 License:        LGPLv3+ and GPLv3+
@@ -12,6 +12,8 @@ BuildArch:      noarch
 
 # downloaded and extracted by get-sources.sh
 Source0:        newlib-cygwin-%{version}.tar.bz2
+Patch1:         0001-Revert-cygwin-only-expose-dev-con-in-out-sole-when-s.patch
+Patch2:         0002-cygwin-workaround-GCC-6-changes.patch
 
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
@@ -64,6 +66,8 @@ Cygwin 64-bit cross-compiler runtime, base libraries.
 
 %prep
 %setup -q -n newlib-cygwin
+%patch1 -p1
+%patch2 -p1
 touch winsup/cygwin/tlsoffsets*.h
 touch winsup/cygwin/devices.cc
 
@@ -132,6 +136,9 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
 
 %changelog
+* Tue Dec 05 2017 Yaakov Selkowitz <yselkowi@redhat.com> - 2.9.0-2
+- Fix build with GCC 6
+
 * Sun Dec 03 2017 Yaakov Selkowitz <yselkowi@redhat.com> - 2.9.0-1
 - new version
 
