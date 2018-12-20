@@ -39,6 +39,7 @@ BuildRequires:  mingw64-headers
 BuildRequires:  mingw64-winpthreads-static
 BuildRequires:  mingw64-zlib-static
 
+BuildRequires:  gcc
 BuildRequires:  texinfo
 BuildRequires:  xmlto-tex
 BuildRequires:  dblatex
