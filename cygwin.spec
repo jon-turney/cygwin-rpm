@@ -1,7 +1,7 @@
 %{?cygwin_package_header}
 
 Name:           cygwin
-Version:        2.11.2
+Version:        3.0.3
 Release:        1%{?dist}
 Summary:        Cygwin cross-compiler runtime
 
@@ -133,6 +133,9 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
 
 %changelog
+* Mon Mar 11 2019 Yaakov Selkowitz <yselkowi@redhat.com> - 3.0.3-1
+- new version
+
 * Thu Dec 20 2018 Yaakov Selkowitz <yselkowi@redhat.com> - 2.11.2-1
 - new version
 
