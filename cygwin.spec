@@ -12,6 +12,13 @@ BuildArch:      noarch
 
 # downloaded and extracted by get-sources.sh
 Source0:        newlib-cygwin-%{version}.tar.bz2
+# GCC 9 fixes
+Patch1:         0001-Cygwin-posix-timers-fix-uninitialized-variable.patch
+Patch2:         0002-Cygwin-Makefile.in-add-fno-builtin-execve-CFLAG-when.patch
+Patch3:         0003-Cygwin-cygserver-drop-useless-packed-attribute.patch
+Patch4:         0004-Cygwin-32-bit-remove-old-code-to-16-bit-align-stack.patch
+# MinGW-w64 7.0 fixes
+Patch5:         0005-winsup-cygwin-remove-defines-added-in-mingw-w64-v7.0.patch
 
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
@@ -52,7 +59,7 @@ Cygwin 64-bit cross-compiler runtime, base libraries.
 
 
 %prep
-%setup -q -n newlib-cygwin
+%autosetup -n newlib-cygwin -p1
 touch winsup/cygwin/tlsoffsets*.h
 touch winsup/cygwin/devices.cc
 

@@ -1,0 +1,82 @@
+From f553a65d0c330530b45bcebc9b8f0c6fa5c182dc Mon Sep 17 00:00:00 2001
+From: Corinna Vinschen <corinna@vinschen.de>
+Date: Fri, 28 Feb 2020 14:31:56 +0100
+Subject: [PATCH 4/4] Cygwin: 32 bit: remove old code to 16 bit align stack
+
+Aligning the stack pointer using an asm statement isn't any longer
+supported.  gcc-9.2.0 generates the following warning:
+
+  init.cc:33:46: error: listing the stack pointer register '%esp'
+  in a clobber list is deprecated [-Werror=deprecated]
+  [...]
+  init.cc:33:46: note: the value of the stack pointer after an
+  'asm' statement must be the same as it was before the statement
+
+Replace the asm expression with the gcc function attribute
+`force_align_arg_pointer'.  This aligns the stack exactly as
+required.
+
+Signed-off-by: Corinna Vinschen <corinna@vinschen.de>
+---
+ winsup/cygwin/crt0.c  | 14 +++-----------
+ winsup/cygwin/init.cc | 13 +++----------
+ 2 files changed, 6 insertions(+), 21 deletions(-)
+
+diff --git a/winsup/cygwin/crt0.c b/winsup/cygwin/crt0.c
+index fee4b2e24..ec7959a0f 100644
+--- a/winsup/cygwin/crt0.c
++++ b/winsup/cygwin/crt0.c
+@@ -16,20 +16,12 @@ extern int main (int argc, char **argv);
+ 
+ void cygwin_crt0 (int (*main) (int, char **));
+ 
++#ifdef __i386__
++__attribute__ ((force_align_arg_pointer))
++#endif
+ void
+ mainCRTStartup ()
+ {
+-#ifdef __i386__
+-#if __GNUC_PREREQ(6,0)
+-#pragma GCC diagnostic ignored "-Wframe-address"
+-#endif
+-  (void)__builtin_return_address(1);
+-#if __GNUC_PREREQ(6,0)
+-#pragma GCC diagnostic pop
+-#endif
+-  asm volatile ("andl $-16,%%esp" ::: "%esp");
+-#endif
+-
+   cygwin_crt0 (main);
+ 
+   /* These are never actually called.  They are just here to force the inclusion
+diff --git a/winsup/cygwin/init.cc b/winsup/cygwin/init.cc
+index 851a7ffed..7787b164c 100644
+--- a/winsup/cygwin/init.cc
++++ b/winsup/cygwin/init.cc
+@@ -19,19 +19,12 @@ unsigned threadfunc_ix[8];
+ static bool dll_finished_loading;
+ #define OLDFUNC_OFFSET -1
+ 
++#ifdef __i386__
++__attribute__ ((force_align_arg_pointer))
++#endif
+ static void WINAPI
+ threadfunc_fe (VOID *arg)
+ {
+-#ifdef __i386__
+-#if __GNUC_PREREQ(6,0)
+-#pragma GCC diagnostic ignored "-Wframe-address"
+-#endif
+-  (void)__builtin_return_address(1);
+-#if __GNUC_PREREQ(6,0)
+-#pragma GCC diagnostic pop
+-#endif
+-  asm volatile ("andl $-16,%%esp" ::: "%esp");
+-#endif
+   _cygtls::call ((DWORD (*)  (void *, void *)) TlsGetValue (_my_oldfunc), arg);
+ }
+ 
+-- 
+2.25.1
+
