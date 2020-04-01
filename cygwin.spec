@@ -1,13 +1,13 @@
 %{?cygwin_package_header}
 
 Name:           cygwin
-Version:        3.0.3
+Version:        3.1.4
 Release:        1%{?dist}
 Summary:        Cygwin cross-compiler runtime
 
 License:        LGPLv3+ and GPLv3+
 Group:          Development/Libraries
-URL:            http://www.cygwin.com/
+URL:            https://cygwin.com/
 BuildArch:      noarch
 
 # downloaded and extracted by get-sources.sh
@@ -19,12 +19,6 @@ BuildRequires:  cygwin32-gcc
 BuildRequires:  cygwin32-gcc-c++
 BuildRequires:  cygwin32-w32api-headers
 BuildRequires:  cygwin32-w32api-runtime
-BuildRequires:  mingw32-crt
-BuildRequires:  mingw32-gcc
-BuildRequires:  mingw32-gcc-c++
-BuildRequires:  mingw32-headers
-BuildRequires:  mingw32-winpthreads-static
-BuildRequires:  mingw32-zlib-static
 
 BuildRequires:  cygwin64-filesystem >= 7
 BuildRequires:  cygwin64-binutils
@@ -32,12 +26,6 @@ BuildRequires:  cygwin64-gcc
 BuildRequires:  cygwin64-gcc-c++
 BuildRequires:  cygwin64-w32api-headers
 BuildRequires:  cygwin64-w32api-runtime
-BuildRequires:  mingw64-crt
-BuildRequires:  mingw64-gcc
-BuildRequires:  mingw64-gcc-c++
-BuildRequires:  mingw64-headers
-BuildRequires:  mingw64-winpthreads-static
-BuildRequires:  mingw64-zlib-static
 
 BuildRequires:  gcc
 BuildRequires:  texinfo
@@ -75,7 +63,8 @@ pushd build_32bit
 `pwd`/../configure \
   --prefix=%{cygwin32_prefix} \
   --build=%_build --host=%_host \
-  --target=%{cygwin32_target}
+  --target=%{cygwin32_target} \
+  --with-cross-bootstrap
 popd
 
 mkdir -p build_64bit
@@ -83,7 +72,8 @@ pushd build_64bit
 `pwd`/../configure \
   --prefix=%{cygwin64_prefix} \
   --build=%_build --host=%_host \
-  --target=%{cygwin64_target}
+  --target=%{cygwin64_target} \
+  --with-cross-bootstrap
 popd
 
 %cygwin_make %{?_smp_mflags}
@@ -96,14 +86,12 @@ CYGWIN64_MAKE_ARGS="tooldir=%{cygwin64_prefix}" \
 
 # remove files not needed for cross-compiling
 rm -fr $RPM_BUILD_ROOT%{cygwin32_prefix}/etc
-rm -f  $RPM_BUILD_ROOT%{cygwin32_bindir}/cyglsa*
 rm -f  $RPM_BUILD_ROOT%{cygwin32_bindir}/cygserver-config
 rm -f  $RPM_BUILD_ROOT%{cygwin32_bindir}/*.exe
 rm -fr $RPM_BUILD_ROOT%{cygwin32_sbindir}
 rm -fr $RPM_BUILD_ROOT%{cygwin32_datadir}
 
 rm -fr $RPM_BUILD_ROOT%{cygwin64_prefix}/etc
-rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/cyglsa*
 rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/cygserver-config
 rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/*.exe
 rm -fr $RPM_BUILD_ROOT%{cygwin64_sbindir}
@@ -133,6 +121,9 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
 
 %changelog
+* Wed Apr 01 2020 Yaakov Selkowitz <yselkowi@redhat.com> - 3.1.4-1
+- new version
+
 * Mon Mar 11 2019 Yaakov Selkowitz <yselkowi@redhat.com> - 3.0.3-1
 - new version
 
