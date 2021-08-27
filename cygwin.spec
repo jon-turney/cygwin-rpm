@@ -1,7 +1,7 @@
 %{?cygwin_package_header}
 
 Name:           cygwin
-Version:        3.1.4
+Version:        3.2.0
 Release:        1%{?dist}
 Summary:        Cygwin cross-compiler runtime
 
@@ -12,13 +12,6 @@ BuildArch:      noarch
 
 # downloaded and extracted by get-sources.sh
 Source0:        newlib-cygwin-%{version}.tar.bz2
-# GCC 9 fixes
-Patch1:         0001-Cygwin-posix-timers-fix-uninitialized-variable.patch
-Patch2:         0002-Cygwin-Makefile.in-add-fno-builtin-execve-CFLAG-when.patch
-Patch3:         0003-Cygwin-cygserver-drop-useless-packed-attribute.patch
-Patch4:         0004-Cygwin-32-bit-remove-old-code-to-16-bit-align-stack.patch
-# MinGW-w64 7.0 fixes
-Patch5:         0005-winsup-cygwin-remove-defines-added-in-mingw-w64-v7.0.patch
 
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
@@ -35,6 +28,7 @@ BuildRequires:  cygwin64-w32api-headers
 BuildRequires:  cygwin64-w32api-runtime
 
 BuildRequires:  gcc
+BuildRequires:  make
 BuildRequires:  texinfo
 BuildRequires:  xmlto-tex
 BuildRequires:  dblatex
@@ -128,6 +122,9 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
 
 %changelog
+* Thu Aug 26 2021 Yaakov Selkowitz <yselkowi@redhat.com> - 3.2.0-1
+- new version
+
 * Wed Apr 01 2020 Yaakov Selkowitz <yselkowi@redhat.com> - 3.1.4-1
 - new version
 
