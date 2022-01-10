@@ -1,7 +1,7 @@
 %{?cygwin_package_header}
 
 Name:           cygwin
-Version:        3.2.0
+Version:        3.3.3
 Release:        1%{?dist}
 Summary:        Cygwin cross-compiler runtime
 
@@ -27,12 +27,11 @@ BuildRequires:  cygwin64-gcc-c++
 BuildRequires:  cygwin64-w32api-headers
 BuildRequires:  cygwin64-w32api-runtime
 
+BuildRequires:  autoconf
+BuildRequires:  automake
 BuildRequires:  gcc
 BuildRequires:  make
 BuildRequires:  texinfo
-BuildRequires:  xmlto-tex
-BuildRequires:  dblatex
-BuildRequires:  docbook2X
 
 %description
 Cygwin cross-compiler runtime, base libraries.
@@ -56,6 +55,11 @@ Cygwin 64-bit cross-compiler runtime, base libraries.
 %autosetup -n newlib-cygwin -p1
 touch winsup/cygwin/tlsoffsets*.h
 touch winsup/cygwin/devices.cc
+# fixed post-3.3.3 with --disable-doc
+sed -i -e '/SUBDIRS/s/ doc / /' winsup/Makefile.am
+# should be disabled --with-cross-bootstrap; patch sent
+sed -i -e '/SUBDIRS/d' winsup/testsuite/Makefile.am
+winsup/autogen.sh
 
 
 %build
@@ -77,23 +81,23 @@ pushd build_64bit
   --with-cross-bootstrap
 popd
 
-%cygwin_make %{?_smp_mflags}
+%cygwin_make
 
 
 %install
 CYGWIN32_MAKE_ARGS="tooldir=%{cygwin32_prefix}" \
 CYGWIN64_MAKE_ARGS="tooldir=%{cygwin64_prefix}" \
-%cygwin_make install DESTDIR=$RPM_BUILD_ROOT
+%cygwin_make_install
 
 # remove files not needed for cross-compiling
 rm -fr $RPM_BUILD_ROOT%{cygwin32_prefix}/etc
-rm -f  $RPM_BUILD_ROOT%{cygwin32_bindir}/cygserver-config
+rm -f  $RPM_BUILD_ROOT%{cygwin32_bindir}/*cygserver-config
 rm -f  $RPM_BUILD_ROOT%{cygwin32_bindir}/*.exe
 rm -fr $RPM_BUILD_ROOT%{cygwin32_sbindir}
 rm -fr $RPM_BUILD_ROOT%{cygwin32_datadir}
 
 rm -fr $RPM_BUILD_ROOT%{cygwin64_prefix}/etc
-rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/cygserver-config
+rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/*cygserver-config
 rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/*.exe
 rm -fr $RPM_BUILD_ROOT%{cygwin64_sbindir}
 rm -fr $RPM_BUILD_ROOT%{cygwin64_datadir}
@@ -122,6 +126,9 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
 
 %changelog
+* Mon Jan 10 2022 Yaakov Selkowitz <yselkowi@redhat.com> - 3.3.3-1
+- new version
+
 * Thu Aug 26 2021 Yaakov Selkowitz <yselkowi@redhat.com> - 3.2.0-1
 - new version
 
