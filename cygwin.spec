@@ -14,7 +14,7 @@ BuildArch:      noarch
 %undefine cygwin_build_32bit
 %undefine cygwin_build_aarch64
 
-# downloaded and extracted by get-sources.sh
+# downloaded and extracted by .copr/Makefile
 Source0:        newlib-cygwin-%{version}.tar.bz2
 
 BuildRequires:  cygwin32-filesystem >= 7
