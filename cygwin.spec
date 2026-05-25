@@ -1,8 +1,16 @@
 %{?cygwin_package_header}
 
+%global snapshot_commit 2ac3428a93ddac0339c68859e97b910535f9bced
+%global snapshot_shortcommit %(echo %{snapshot_commit} | cut -c1-8)
+%global snapshot_date 20260914
+
 Name:           cygwin
-Version:        3.6.10
+Version:        3.7.0
+%if "%{?snapshot_commit}" != ""
+Release:        0.%{snapshot_date}.%{snapshot_shortcommit}%{?dist}
+%else
 Release:        1%{?dist}
+%endif
 Summary:        Cygwin cross-compiler runtime
 
 License:        LGPLv3+ and GPLv3+
@@ -16,8 +24,14 @@ BuildArch:      noarch
 # x86 is unsupported since 3.4.0
 %undefine cygwin_build_32bit
 
-# downloaded and extracted by get-sources.sh
-Source0:        newlib-cygwin-%{version}.tar.bz2
+# downloaded and extracted by .copr/Makefile
+%if "%{?snapshot_commit}" != ""
+%define git_ref %{snapshot_commit}
+%else
+%define git_ref cygwin-%{version}
+%endif
+
+Source0:        newlib-cygwin-%{git_ref}.tar.bz2
 
 BuildRequires:  cygwin-filesystem-base
 
@@ -78,7 +92,8 @@ pushd build_32bit
   --prefix=%{cygwin32_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin32_target} \
-  --with-cross-bootstrap --disable-dumper --disable-doc
+  --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
+  --disable-doc
 popd
 %endif
 
@@ -89,7 +104,8 @@ pushd build_64bit
   --prefix=%{cygwin64_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin64_target} \
-  --with-cross-bootstrap --disable-dumper --disable-doc
+  --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
+  --disable-doc
 popd
 %endif
 
@@ -141,6 +157,9 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
 
 %changelog
+* Mon Sep 14 2026 Jon Turney <jon.turney@dronecode.org.uk> - 3.7.0-0.20260914.2ac3428a
+- new version
+
 * Thu Sep 10 2026 Jon Turney <jon.turney@dronecode.org.uk> - 3.6.10-1
 - new version
 
