@@ -17,6 +17,9 @@ BuildArch:      noarch
 # downloaded and extracted by .copr/Makefile
 Source0:        newlib-cygwin-%{version}.tar.bz2
 
+Patch0:         0001-cygwin-Only-compute-BFD_LIBS-if-building-dumper.patch
+Patch1:         0002-Cygwin-configure-add-possibility-to-skip-build-of-cy.patch
+
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
 BuildRequires:  cygwin32-gcc
@@ -69,7 +72,8 @@ pushd build_32bit
   --prefix=%{cygwin32_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin32_target} \
-  --with-cross-bootstrap --disable-dumper --disable-doc
+  --with-cross-bootstrap --disable-cygserver --disable-dumper --disable-utils \
+  --disable-doc
 popd
 
 mkdir -p build_64bit
@@ -78,7 +82,8 @@ pushd build_64bit
   --prefix=%{cygwin64_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin64_target} \
-  --with-cross-bootstrap --disable-dumper --disable-doc
+  --with-cross-bootstrap --disable-cygserver --disable-dumper --disable-utils \
+  --disable-doc
 popd
 
 %cygwin_make
