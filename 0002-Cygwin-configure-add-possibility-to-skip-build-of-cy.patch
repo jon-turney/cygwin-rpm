@@ -1,7 +1,7 @@
-From f76225b1900b0580807a6455033bc3652a250ed8 Mon Sep 17 00:00:00 2001
+From 383d99c19d4f92d560c1189a0ecd2a4b8d62a149 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Radek=20Barto=C5=88?= <radek.barton@microsoft.com>
 Date: Sat, 21 Jun 2025 22:56:58 +0200
-Subject: [PATCH 2/2] Cygwin: configure: add possibility to skip build of
+Subject: [PATCH 2/4] Cygwin: configure: add possibility to skip build of
  cygserver and utils
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

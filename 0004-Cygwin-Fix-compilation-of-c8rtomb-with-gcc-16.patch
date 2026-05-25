@@ -1,0 +1,36 @@
+From f6cd90e465bdeaf7e86f26cbb4b2f8b8163bca9d Mon Sep 17 00:00:00 2001
+From: Jon Turney <jon.turney@dronecode.org.uk>
+Date: Mon, 25 May 2026 22:52:20 +0100
+Subject: [PATCH 4/4] Cygwin: Fix compilation of c8rtomb with gcc 16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+../../../../src/winsup/cygwin/strfuncs.cc: In function ‘size_t c8rtomb(char*, char8_t, mbstate_t*)’:
+../../../../src/winsup/cygwin/strfuncs.cc:214:41: error: cannot bind non-const lvalue reference of type ‘char8_t&’ to a value of type ‘unsigned char’
+../../../../src/winsup/cygwin/strfuncs.cc:215:41: error: cannot bind non-const lvalue reference of type ‘char8_t&’ to a value of type ‘unsigned char’
+../../../../src/winsup/cygwin/strfuncs.cc:216:41: error: cannot bind non-const lvalue reference of type ‘char8_t&’ to a value of type ‘unsigned char’
+---
+ winsup/cygwin/strfuncs.cc | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/winsup/cygwin/strfuncs.cc b/winsup/cygwin/strfuncs.cc
+index 0cf41cefc..85427a0d1 100644
+--- a/winsup/cygwin/strfuncs.cc
++++ b/winsup/cygwin/strfuncs.cc
+@@ -211,9 +211,9 @@ c8rtomb (char *s, char8_t c8, mbstate_t *ps)
+     {
+       /* We already collected something... */
+       int idx = ps->__count & 0x3;
+-      char8_t &c1 = ps->__value.__wchb[0];
+-      char8_t &c2 = ps->__value.__wchb[1];
+-      char8_t &c3 = ps->__value.__wchb[2];
++      unsigned char &c1 = ps->__value.__wchb[0];
++      unsigned char &c2 = ps->__value.__wchb[1];
++      unsigned char &c3 = ps->__value.__wchb[2];
+ 
+       switch (idx)
+ 	{
+-- 
+2.51.0
+

@@ -19,6 +19,8 @@ Source0:        newlib-cygwin-%{version}.tar.bz2
 
 Patch0:         0001-cygwin-Only-compute-BFD_LIBS-if-building-dumper.patch
 Patch1:         0002-Cygwin-configure-add-possibility-to-skip-build-of-cy.patch
+Patch2:         0003-Cygwin-Use-bool-return-type-for-comparison-operators.patch
+Patch3:         0004-Cygwin-Fix-compilation-of-c8rtomb-with-gcc-16.patch
 
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
@@ -66,6 +68,8 @@ winsup/autogen.sh
 
 
 %build
+export CFLAGS_FOR_TARGET="-Wno-error"
+
 mkdir -p build_32bit
 pushd build_32bit
 `pwd`/../configure \

@@ -1,0 +1,42 @@
+From 5eeeffcf90e8d019f48dc59a0d1a2d3339cfade9 Mon Sep 17 00:00:00 2001
+From: Jon Turney <jon.turney@dronecode.org.uk>
+Date: Tue, 26 May 2026 09:57:58 +0100
+Subject: [PATCH 3/4] Cygwin: Use bool return type for comparison operators in
+ class pinfo
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Fixes an error when compiling with gcc 16:
+
+> ../../../../src/winsup/cygwin/signal.cc: In function ‘int kill_pgrp(pid_t, siginfo_t&)’:
+> ../../../../src/winsup/cygwin/signal.cc:373:13: error: return type of ‘int pinfo::operator==(_pinfo*) const’ is not ‘bool’
+> ../../../../src/winsup/cygwin/signal.cc:373:13: note: used as rewritten candidate for comparison of ‘_pinfo*’ and ‘pinfo’
+
+etc.
+---
+ winsup/cygwin/local_includes/pinfo.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/winsup/cygwin/local_includes/pinfo.h b/winsup/cygwin/local_includes/pinfo.h
+index 6f817de6b..fe8203fbc 100644
+--- a/winsup/cygwin/local_includes/pinfo.h
++++ b/winsup/cygwin/local_includes/pinfo.h
+@@ -227,10 +227,10 @@ public:
+   void maybe_set_exit_code_from_windows ();
+   void set_exit_code (DWORD n);
+   _pinfo *operator -> () const {return procinfo;}
+-  int operator == (pinfo *x) const {return x->procinfo == procinfo;}
+-  int operator == (pinfo &x) const {return x.procinfo == procinfo;}
+-  int operator == (_pinfo *x) const {return x == procinfo;}
+-  int operator == (void *x) const {return procinfo == x;}
++  bool operator == (pinfo *x) const {return x->procinfo == procinfo;}
++  bool operator == (pinfo &x) const {return x.procinfo == procinfo;}
++  bool operator == (_pinfo *x) const {return x == procinfo;}
++  bool operator == (void *x) const {return procinfo == x;}
+   _pinfo *operator * () const {return procinfo;}
+   operator _pinfo * () const {return procinfo;}
+   int operator !() const {return !procinfo;}
+-- 
+2.51.0
+

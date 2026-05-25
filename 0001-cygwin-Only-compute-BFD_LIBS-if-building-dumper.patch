@@ -1,7 +1,7 @@
 From 51c5da369bdfdca3e413296c8074824e6b01fd96 Mon Sep 17 00:00:00 2001
 From: Jon Turney <jon.turney@dronecode.org.uk>
 Date: Mon, 25 May 2026 18:57:35 +0100
-Subject: [PATCH 1/2] cygwin: Only compute BFD_LIBS if building dumper
+Subject: [PATCH 1/4] cygwin: Only compute BFD_LIBS if building dumper
 
 Don't try to determine BFD library link flags if we're not even building
 dumper.
