@@ -1,7 +1,7 @@
 %{?cygwin_package_header}
 
 Name:           cygwin
-Version:        3.3.3
+Version:        3.6.9
 Release:        1%{?dist}
 Summary:        Cygwin cross-compiler runtime
 
@@ -9,6 +9,10 @@ License:        LGPLv3+ and GPLv3+
 Group:          Development/Libraries
 URL:            https://cygwin.com/
 BuildArch:      noarch
+
+# x86 is unsupported since 3.4.0
+%undefine cygwin_build_32bit
+%undefine cygwin_build_aarch64
 
 # downloaded and extracted by get-sources.sh
 Source0:        newlib-cygwin-%{version}.tar.bz2
@@ -55,10 +59,6 @@ Cygwin 64-bit cross-compiler runtime, base libraries.
 %autosetup -n newlib-cygwin -p1
 touch winsup/cygwin/tlsoffsets*.h
 touch winsup/cygwin/devices.cc
-# fixed post-3.3.3 with --disable-doc
-sed -i -e '/SUBDIRS/s/ doc / /' winsup/Makefile.am
-# should be disabled --with-cross-bootstrap; patch sent
-sed -i -e '/SUBDIRS/d' winsup/testsuite/Makefile.am
 winsup/autogen.sh
 
 
@@ -69,7 +69,7 @@ pushd build_32bit
   --prefix=%{cygwin32_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin32_target} \
-  --with-cross-bootstrap
+  --with-cross-bootstrap --disable-dumper --disable-doc
 popd
 
 mkdir -p build_64bit
@@ -78,7 +78,7 @@ pushd build_64bit
   --prefix=%{cygwin64_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin64_target} \
-  --with-cross-bootstrap
+  --with-cross-bootstrap --disable-dumper --disable-doc
 popd
 
 %cygwin_make
