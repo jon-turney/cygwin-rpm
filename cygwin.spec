@@ -85,6 +85,8 @@ winsup/autogen.sh
 
 
 %build
+export CFLAGS_FOR_TARGET="-Wno-error"
+
 %if 0%{?cygwin_build_32bit} == 1
 mkdir -p build_32bit
 pushd build_32bit
