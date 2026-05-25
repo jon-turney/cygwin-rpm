@@ -33,6 +33,9 @@ BuildArch:      noarch
 
 Source0:        newlib-cygwin-%{git_ref}.tar.bz2
 
+# gcc 16 fixes
+Patch3:         0004-Cygwin-Fix-compilation-of-c8rtomb-with-gcc-16.patch
+
 BuildRequires:  cygwin-filesystem-base
 
 %if 0%{?cygwin_build_32bit} == 1
