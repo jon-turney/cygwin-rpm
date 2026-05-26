@@ -1,8 +1,16 @@
 %{?cygwin_package_header}
 
+%global snapshot_commit 3bd5b517f3fe46bdff8e70f1e6038bd0853ddc95
+%global snapshot_shortcommit %(echo %{snapshot_commit} | cut -c1-8)
+%global snapshot_date 20260523
+
 Name:           cygwin
-Version:        3.6.9
+Version:        3.7.0
+%if "%{?snapshot_commit}" != ""
+Release:        0.%{snapshot_date}.%{snapshot_shortcommit}%{?dist}
+%else
 Release:        1%{?dist}
+%endif
 Summary:        Cygwin cross-compiler runtime
 
 License:        LGPLv3+ and GPLv3+
@@ -15,10 +23,15 @@ BuildArch:      noarch
 %undefine cygwin_build_aarch64
 
 # downloaded and extracted by .copr/Makefile
-Source0:        newlib-cygwin-%{version}.tar.bz2
+%if "%{?snapshot_commit}" != ""
+%define git_ref %{snapshot_commit}
+%else
+%define git_ref cygwin-%{version}
+%endif
+
+Source0:        newlib-cygwin-%{git_ref}.tar.bz2
 
 Patch0:         0001-cygwin-Only-compute-BFD_LIBS-if-building-dumper.patch
-Patch1:         0002-Cygwin-configure-add-possibility-to-skip-build-of-cy.patch
 Patch2:         0003-Cygwin-Use-bool-return-type-for-comparison-operators.patch
 Patch3:         0004-Cygwin-Fix-compilation-of-c8rtomb-with-gcc-16.patch
 Patch4:         0001-Pass-include-directory-to-winres.patch
@@ -77,7 +90,7 @@ pushd build_32bit
   --prefix=%{cygwin32_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin32_target} \
-  --with-cross-bootstrap --disable-cygserver --disable-dumper --disable-utils \
+  --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
   --disable-doc
 popd
 
@@ -87,7 +100,7 @@ pushd build_64bit
   --prefix=%{cygwin64_prefix} \
   --build=%_build --host=%_host \
   --target=%{cygwin64_target} \
-  --with-cross-bootstrap --disable-cygserver --disable-dumper --disable-utils \
+  --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
   --disable-doc
 popd
 
