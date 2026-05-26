@@ -1,0 +1,26 @@
+From f6ee85ecefa076bdc97cc00f588b70d374672947 Mon Sep 17 00:00:00 2001
+From: Jon Turney <jon.turney@dronecode.org.uk>
+Date: Tue, 26 May 2026 12:14:25 +0100
+Subject: [PATCH] Pass include directory to winres
+
+(Needed for bootstrap build, where an installed version.h doesn't exist)
+---
+ winsup/cygwin/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/winsup/cygwin/Makefile.am b/winsup/cygwin/Makefile.am
+index 383f4f34a..3d43b11de 100644
+--- a/winsup/cygwin/Makefile.am
++++ b/winsup/cygwin/Makefile.am
+@@ -450,7 +450,7 @@ uname_version.c: .FORCE
+ version.cc: scripts/mkvers.sh include/cygwin/version.h winver.rc $(src_files)
+ 	@echo "Making version.cc and winver.o";\
+ 	export CC="$(CC)";\
+-	/bin/sh $(word 1,$^) $(word 2,$^) $(word 3,$^) $(WINDRES) $(CFLAGS)
++	/bin/sh $(word 1,$^) $(word 2,$^) $(word 3,$^) $(WINDRES) -I${winsup_srcdir}/cygwin/include $(CFLAGS)
+ 
+ winver.o: version.cc
+ 
+-- 
+2.51.0
+

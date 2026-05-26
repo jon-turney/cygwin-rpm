@@ -35,6 +35,8 @@ Source0:        newlib-cygwin-%{git_ref}.tar.bz2
 
 # gcc 16 fixes
 Patch3:         0004-Cygwin-Fix-compilation-of-c8rtomb-with-gcc-16.patch
+# bootstrapping fixes
+Patch4:         0001-Pass-include-directory-to-winres.patch
 
 BuildRequires:  cygwin-filesystem-base
 
