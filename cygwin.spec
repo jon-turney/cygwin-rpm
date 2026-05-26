@@ -21,6 +21,7 @@ Patch0:         0001-cygwin-Only-compute-BFD_LIBS-if-building-dumper.patch
 Patch1:         0002-Cygwin-configure-add-possibility-to-skip-build-of-cy.patch
 Patch2:         0003-Cygwin-Use-bool-return-type-for-comparison-operators.patch
 Patch3:         0004-Cygwin-Fix-compilation-of-c8rtomb-with-gcc-16.patch
+Patch4:         0001-Pass-include-directory-to-winres.patch
 
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
