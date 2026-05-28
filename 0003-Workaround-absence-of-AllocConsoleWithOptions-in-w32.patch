@@ -1,0 +1,35 @@
+From b6a381dc1142af610cbf42527122691bbb1884f6 Mon Sep 17 00:00:00 2001
+From: Jon Turney <jon.turney@dronecode.org.uk>
+Date: Thu, 28 May 2026 22:37:31 +0100
+Subject: [PATCH 3/3] Workaround absence of AllocConsoleWithOptions in w32api
+
+Because autoload is stubbed on aarch64, we're linking directly with this function, which it seems isn't provided by w32api import libraries (yet).
+---
+ winsup/cygwin/fhandler/console.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/winsup/cygwin/fhandler/console.cc b/winsup/cygwin/fhandler/console.cc
+index c76347f6f..ed67a838f 100644
+--- a/winsup/cygwin/fhandler/console.cc
++++ b/winsup/cygwin/fhandler/console.cc
+@@ -4536,6 +4536,9 @@ hook_conemu_cygwin_connector()
+ bool
+ fhandler_console::create_invisible_console ()
+ {
++#if defined(__aarch64__)
++  return 0;
++#else
+   ALLOC_CONSOLE_OPTIONS options = { ALLOC_CONSOLE_MODE_NO_WINDOW, FALSE, 0 };
+   ALLOC_CONSOLE_RESULT res;
+ 
+@@ -4544,6 +4547,7 @@ fhandler_console::create_invisible_console ()
+   termios_printf ("%X = AllocConsoleWithOptions (), %u", ret, res);
+   invisible_console = (ret == S_OK);
+   return invisible_console;
++#endif
+ }
+ 
+ /* Ugly workaround to create invisible console required prior to W11 24H2.
+-- 
+2.54.0
+

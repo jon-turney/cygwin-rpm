@@ -1,0 +1,227 @@
+From 321d3a72fd576fd4efddeb788aa578ced0ca8f06 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Radek=20Barto=C5=88?= <radek.barton@microsoft.com>
+Date: Sat, 7 Dec 2024 12:40:04 +0100
+Subject: [PATCH 1/3] Workarounds needed to make Cygwin build for AArch64
+ bootstrap
+
+---
+ winsup/cygwin/Makefile.am            |  2 +-
+ winsup/cygwin/autoload.cc            | 26 +++++++++++++++++++++-----
+ winsup/cygwin/exceptions.cc          | 20 ++++++++++++++++----
+ winsup/cygwin/local_includes/cpuid.h | 11 ++++++++++-
+ 4 files changed, 48 insertions(+), 11 deletions(-)
+
+diff --git a/winsup/cygwin/Makefile.am b/winsup/cygwin/Makefile.am
+index 22b7b14bd..c1ff4cfd8 100644
+--- a/winsup/cygwin/Makefile.am
++++ b/winsup/cygwin/Makefile.am
+@@ -629,7 +629,7 @@ $(NEW_DLL_NAME): $(LDSCRIPT) libdll.a $(VERSION_OFILES) $(LIBSERVER)\
+ 	$(LIBSERVER) \
+ 	$(newlib_build)/libm.a \
+ 	$(newlib_build)/libc.a \
+-	-lgcc -lkernel32 -lntdll -Wl,-Map,cygwin.map
++	-lgcc -lpdh -lntdll -lonecore -Wl,-Map,cygwin.map
+ 	@$(MKDIR_P) ${target_builddir}/winsup/testsuite/testinst/bin/
+ 	$(AM_V_at)$(INSTALL_PROGRAM) $(NEW_DLL_NAME) ${target_builddir}/winsup/testsuite/testinst/bin/$(DLL_NAME)
+ 
+diff --git a/winsup/cygwin/autoload.cc b/winsup/cygwin/autoload.cc
+index a038997b3..2c769e8c5 100644
+--- a/winsup/cygwin/autoload.cc
++++ b/winsup/cygwin/autoload.cc
+@@ -67,7 +67,7 @@ bool NO_COPY wsock_started;
+ /* LoadDLLprime is used to prime the DLL info information, providing an
+    additional initialization routine to call prior to calling the first
+    function.  */
+-#ifdef __x86_64__
++#if defined(__x86_64__)
+ #define LoadDLLprime(dllname, init_also, no_resolve_on_fork) __asm__ ("	\n\
+ .ifndef " #dllname "_primed				\n\
+   .section	.data_cygwin_nocopy,\"w\"		\n\
+@@ -83,6 +83,9 @@ bool NO_COPY wsock_started;
+   .set		" #dllname "_primed, 1			\n\
+ .endif							\n\
+ ");
++#elif defined(__aarch64__)
++  // TODO
++  #define LoadDLLprime(dllname, init_also, no_resolve_on_fork) __asm__ ("");
+ #else
+ #error unimplemented for this target
+ #endif
+@@ -97,7 +100,7 @@ bool NO_COPY wsock_started;
+   LoadDLLfuncEx3(name, dllname, notimp, err, 0)
+ 
+ /* Main DLL setup stuff. */
+-#ifdef __x86_64__
++#if defined(__x86_64__)
+ #define LoadDLLfuncEx3(name, dllname, notimp, err, no_resolve_on_fork) \
+   LoadDLLprime (dllname, dll_func_load, no_resolve_on_fork) \
+   __asm__ ("						\n\
+@@ -123,6 +126,10 @@ _win32_" #name ":					\n\
+   .asciz	\"" #name "\"				\n\
+   .text							\n\
+ ");
++#elif defined(__aarch64__)
++#define LoadDLLfuncEx3(name, dllname, notimp, err, no_resolve_on_fork) \
++  // TODO
++  LoadDLLprime (dllname, dll_func_load, no_resolve_on_fork) __asm__ ("");
+ #else
+ #error unimplemented for this target
+ #endif
+@@ -141,7 +148,7 @@ extern "C" void dll_chain () __asm__ ("dll_chain");
+ 
+ extern "C" {
+ 
+-#ifdef __x86_64__
++#if defined(__x86_64__)
+ __asm__ ("								\n\
+ 	 .section .rdata,\"r\"							\n\
+ msg1:									\n\
+@@ -203,6 +210,8 @@ dll_chain:								\n\
+ 	push	%rax		# Restore 'return address'		\n\
+ 	jmp	*%rdx		# Jump to next init function		\n\
+ ");
++#elif defined(__aarch64__)
++  // TODO
+ #else
+ #error unimplemented for this target
+ #endif
+@@ -260,7 +269,7 @@ dll_load (HANDLE& handle, PWCHAR name)
+ #define RETRY_COUNT 10
+ 
+ /* The standard DLL initialization routine. */
+-#ifdef __x86_64__
++#if defined(__x86_64__)
+ 
+ /* On x86_64, we need assembler wrappers for std_dll_init and wsock_init.
+    In the x86_64 ABI it's no safe bet that frame[1] (aka 8(%rbp)) contains
+@@ -300,6 +309,13 @@ _" #func ":								\n\
+ 
+ INIT_WRAPPER (std_dll_init)
+ 
++#elif defined(__aarch64__)
++
++// TODO
++#define INIT_WRAPPER(func) __asm__ ("");
++
++INIT_WRAPPER (std_dll_init)
++
+ #else
+ #error unimplemented for this target
+ #endif
+@@ -360,7 +376,7 @@ std_dll_init (struct func_info *func)
+ 
+ /* Initialization function for winsock stuff. */
+ 
+-#ifdef __x86_64__
++#if defined(__x86_64__) || defined(__aarch64__)
+ /* See above comment preceeding std_dll_init. */
+ INIT_WRAPPER (wsock_init)
+ #else
+diff --git a/winsup/cygwin/exceptions.cc b/winsup/cygwin/exceptions.cc
+index 1e129b319..cc73d8a5c 100644
+--- a/winsup/cygwin/exceptions.cc
++++ b/winsup/cygwin/exceptions.cc
+@@ -1892,7 +1892,7 @@ _cygtls::call_signal_handler ()
+ 
+ 	  /* In assembler: Save regs on new stack, move to alternate stack,
+ 	     call thisfunc, revert stack regs. */
+-#ifdef __x86_64__
++#if defined(__x86_64__)
+ 	  /* Clobbered regs: rcx, rdx, r8, r9, r10, r11, rbp, rsp */
+ 	  __asm__ ("\n\
+ 		   movq  %[NEW_SP], %%rax  # Load alt stack into rax	\n\
+@@ -1930,6 +1930,8 @@ _cygtls::call_signal_handler ()
+ 		       [FUNC]	"o" (thisfunc),
+ 		       [WRAPPER] "o" (altstack_wrapper)
+ 		   : "memory");
++#elif defined(__aarch64__)
++  // TODO
+ #else
+ #error unimplemented for this target
+ #endif
+@@ -2049,7 +2051,7 @@ swapcontext (ucontext_t *oucp, const ucontext_t *ucp)
+ /* Trampoline function to set the context to uc_link.  The pointer to the
+    address of uc_link is stored in a callee-saved register, referenced by
+    _MC_uclinkReg from the C code.  If uc_link is NULL, call exit. */
+-#ifdef __x86_64__
++#if defined(__x86_64__)
+ /* _MC_uclinkReg == %rbx */
+ __asm__ ("				\n\
+ 	.global	__cont_link_context	\n\
+@@ -2070,7 +2072,15 @@ __cont_link_context:			\n\
+ 	nop				\n\
+ 	.seh_endproc			\n\
+ 	");
+-
++#elif defined(__aarch64__)
++  // TODO
++  __asm__ ("				\n\
++	.global	__cont_link_context	\n\
++	.seh_proc __cont_link_context	\n\
++__cont_link_context:			\n\
++	.seh_endprologue		\n\
++	.seh_endproc			\n\
++	");
+ #else
+ #error unimplemented for this target
+ #endif
+@@ -2117,7 +2127,7 @@ makecontext (ucontext_t *ucp, void (*func) (void), int argc, ...)
+        providing pointer values to func without additional porting effort. */
+   va_start (ap, argc);
+   for (int i = 0; i < argc; ++i)
+-#ifdef __x86_64__
++#if defined(__x86_64__)
+     switch (i)
+       {
+       case 0:
+@@ -2136,6 +2146,8 @@ makecontext (ucontext_t *ucp, void (*func) (void), int argc, ...)
+ 	sp[i + 1] = va_arg (ap, uintptr_t);
+ 	break;
+       }
++#elif defined(__aarch64__)
++  // TODO
+ #else
+ #error unimplemented for this target
+ #endif
+diff --git a/winsup/cygwin/local_includes/cpuid.h b/winsup/cygwin/local_includes/cpuid.h
+index 6dbb1bddf..238c88777 100644
+--- a/winsup/cygwin/local_includes/cpuid.h
++++ b/winsup/cygwin/local_includes/cpuid.h
+@@ -13,17 +13,23 @@ static inline void __attribute ((always_inline))
+ cpuid (uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, uint32_t ain,
+        uint32_t cin = 0)
+ {
++#if defined(__x86_64__)
+   asm volatile ("cpuid"
+ 		: "=a" (*a), "=b" (*b), "=c" (*c), "=d" (*d)
+ 		: "a" (ain), "c" (cin));
++#elif defined(__aarch64__)
++  // TODO
++  *a = *b = *c = *d = 0;
++#endif
+ }
+ 
+-#ifdef __x86_64__
++#if defined(__x86_64__) || defined(__aarch64__)
+ static inline bool __attribute ((always_inline))
+ can_set_flag (uint32_t long flag)
+ {
+   uint32_t long r1, r2;
+ 
++#if defined(__x86_64__)
+   asm volatile ("pushfq\n"
+ 		"popq %0\n"
+ 		"movq %0, %1\n"
+@@ -37,6 +43,9 @@ can_set_flag (uint32_t long flag)
+ 		: "=&r" (r1), "=&r" (r2)
+ 		: "ir" (flag)
+   );
++#elif defined(__aarch64__)
++  // TODO
++#endif
+   return ((r1 ^ r2) & flag) != 0;
+ }
+ #else
+-- 
+2.54.0
+

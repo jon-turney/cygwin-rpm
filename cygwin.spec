@@ -20,7 +20,6 @@ BuildArch:      noarch
 
 # x86 is unsupported since 3.4.0
 %undefine cygwin_build_32bit
-%undefine cygwin_build_aarch64
 
 # downloaded and extracted by .copr/Makefile
 %if "%{?snapshot_commit}" != ""
@@ -36,6 +35,12 @@ Patch2:         0003-Cygwin-Use-bool-return-type-for-comparison-operators.patch
 Patch3:         0004-Cygwin-Fix-compilation-of-c8rtomb-with-gcc-16.patch
 Patch4:         0001-Pass-include-directory-to-winres.patch
 
+# patches with minimal stubs to build aarch64 for bootstrapping
+# (don't expect the cygwin DLL this produces to work!)
+Patch10:        0001-Workarounds-needed-to-make-Cygwin-build-for-AArch64-.patch
+Patch11:        0002-Cygwin-Fix-typo-in-remainderl.S.patch
+Patch12:        0003-Workaround-absence-of-AllocConsoleWithOptions-in-w32.patch
+
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
 BuildRequires:  cygwin32-gcc
@@ -50,6 +55,13 @@ BuildRequires:  cygwin64-gcc-c++
 BuildRequires:  cygwin64-w32api-headers
 BuildRequires:  cygwin64-w32api-runtime
 
+BuildRequires:  cygwin-aarch64-filesystem >= 151
+BuildRequires:  cygwin-aarch64-binutils
+BuildRequires:  cygwin-aarch64-gcc
+BuildRequires:  cygwin-aarch64-gcc-c++
+BuildRequires:  cygwin-aarch64-w32api-headers
+BuildRequires:  cygwin-aarch64-w32api-runtime
+
 BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  gcc
@@ -60,18 +72,26 @@ BuildRequires:  texinfo
 Cygwin cross-compiler runtime, base libraries.
 
 %package -n cygwin32
-Summary:    Cygwin32 cross-compiler runtime
+Summary:    Cygwin i686 cross-compiler runtime
 Requires:   cygwin32-w32api-runtime
 
 %description -n cygwin32
 Cygwin 32-bit cross-compiler runtime, base libraries.
 
 %package -n cygwin64
-Summary:    Cygwin64 cross-compiler runtime
+Summary:    Cygwin x86_64 cross-compiler runtime
 Requires:   cygwin64-w32api-runtime
 
 %description -n cygwin64
 Cygwin 64-bit cross-compiler runtime, base libraries.
+
+%package -n cygwin-aarch64
+Summary:    Cygwin aarch64 cross-compiler runtime
+Requires:   cygwin-aarch64-w32api-runtime
+
+%description -n cygwin-aarch64
+Cygwin 64-bit cross-compiler runtime, base libraries.
+
 
 
 %prep
@@ -84,6 +104,7 @@ winsup/autogen.sh
 %build
 export CFLAGS_FOR_TARGET="-Wno-error"
 
+%if 0%{?cygwin_build_32bit} == 1
 mkdir -p build_32bit
 pushd build_32bit
 `pwd`/../configure \
@@ -93,7 +114,9 @@ pushd build_32bit
   --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
   --disable-doc
 popd
+%endif
 
+%if 0%{?cygwin_build_64bit} == 1
 mkdir -p build_64bit
 pushd build_64bit
 `pwd`/../configure \
@@ -103,6 +126,19 @@ pushd build_64bit
   --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
   --disable-doc
 popd
+%endif
+
+%if 0%{?cygwin_build_aarch64} == 1
+mkdir -p build_aarch64
+pushd build_aarch64
+`pwd`/../configure \
+  --prefix=%{cygwin_aarch64_prefix} \
+  --build=%_build --host=%_host \
+  --target=%{cygwin_aarch64_target} \
+  --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
+  --disable-doc
+popd
+%endif
 
 %cygwin_make
 
@@ -110,6 +146,7 @@ popd
 %install
 CYGWIN32_MAKE_ARGS="tooldir=%{cygwin32_prefix}" \
 CYGWIN64_MAKE_ARGS="tooldir=%{cygwin64_prefix}" \
+CYGWIN_AARCH64_MAKE_ARGS="tooldir=%{cygwin_aarch64_prefix}" \
 %cygwin_make_install
 
 # remove files not needed for cross-compiling
@@ -125,6 +162,12 @@ rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/*.exe
 rm -fr $RPM_BUILD_ROOT%{cygwin64_sbindir}
 rm -fr $RPM_BUILD_ROOT%{cygwin64_datadir}
 
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_prefix}/etc
+rm -f  $RPM_BUILD_ROOT%{cygwin_aarch64_bindir}/*cygserver-config
+rm -f  $RPM_BUILD_ROOT%{cygwin_aarch64_bindir}/*.exe
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_sbindir}
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_datadir}
+
 # these are provided by other packages
 rm -fr $RPM_BUILD_ROOT%{cygwin32_includedir}/iconv.h
 rm -fr $RPM_BUILD_ROOT%{cygwin32_includedir}/unctrl.h
@@ -134,18 +177,33 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/iconv.h
 rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/unctrl.h
 rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_includedir}/iconv.h
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_includedir}/unctrl.h
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_includedir}/rpc/
 
+%if 0%{?cygwin_build_32bit} == 1
 %files -n cygwin32
 %doc winsup/COPYING winsup/CYGWIN_LICENSE
 %{cygwin32_bindir}/cygwin1.dll
 %{cygwin32_includedir}/*
 %{cygwin32_libdir}/*
+%endif
 
+%if 0%{?cygwin_build_64bit} == 1
 %files -n cygwin64
 %doc winsup/COPYING winsup/CYGWIN_LICENSE
 %{cygwin64_bindir}/cygwin1.dll
 %{cygwin64_includedir}/*
 %{cygwin64_libdir}/*
+%endif
+
+%if 0%{?cygwin_build_aarch64} == 1
+%files -n cygwin-aarch64
+%doc winsup/COPYING winsup/CYGWIN_LICENSE
+%{cygwin_aarch64_bindir}/cygwin1.dll
+%{cygwin_aarch64_includedir}/*
+%{cygwin_aarch64_libdir}/*
+%endif
 
 
 %changelog

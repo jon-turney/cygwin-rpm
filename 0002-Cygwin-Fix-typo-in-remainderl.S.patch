@@ -1,0 +1,25 @@
+From 9c8265629f20f3c6615d09761440ceb0b68d8975 Mon Sep 17 00:00:00 2001
+From: Jon Turney <jon.turney@dronecode.org.uk>
+Date: Thu, 28 May 2026 22:17:29 +0100
+Subject: [PATCH 2/3] Cygwin: Fix typo in remainderl.S
+
+---
+ winsup/cygwin/math/remainderl.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/winsup/cygwin/math/remainderl.S b/winsup/cygwin/math/remainderl.S
+index f05724e94..9b079eca3 100644
+--- a/winsup/cygwin/math/remainderl.S
++++ b/winsup/cygwin/math/remainderl.S
+@@ -36,7 +36,7 @@ __MINGW_USYMBOL(remainderl):
+ 	jp	1b
+ 	fstp	%st(1)
+ 	ret
+-#elif _defined(__aarch64__)
++#elif defined(__aarch64__)
+ 	bl	remainder
+ 	ret
+ #else
+-- 
+2.54.0
+
