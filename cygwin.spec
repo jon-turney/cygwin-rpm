@@ -1,8 +1,8 @@
 %{?cygwin_package_header}
 
-%global snapshot_commit 2ac3428a93ddac0339c68859e97b910535f9bced
+%global snapshot_commit 2a7858e9168600d3fa8d59475723422c215e3481
 %global snapshot_shortcommit %(echo %{snapshot_commit} | cut -c1-8)
-%global snapshot_date 20260914
+%global snapshot_date 20260916
 
 Name:           cygwin
 Version:        3.7.0
@@ -33,6 +33,10 @@ BuildArch:      noarch
 
 Source0:        newlib-cygwin-%{git_ref}.tar.bz2
 
+# patches to build aarch64 for bootstrapping
+# (don't expect the cygwin DLL this produces to work!)
+Patch1:         0001-Workarounds-needed-to-make-Cygwin-build-for-AArch64-.patch
+
 BuildRequires:  cygwin-filesystem-base
 
 %if 0%{?cygwin_build_32bit} == 1
@@ -53,6 +57,15 @@ BuildRequires:  cygwin64-w32api-headers
 BuildRequires:  cygwin64-w32api-runtime
 %endif
 
+%if 0%{?cygwin_build_aarch64} == 1
+BuildRequires:  cygwin-aarch64-filesystem >= 151
+BuildRequires:  cygwin-aarch64-binutils
+BuildRequires:  cygwin-aarch64-gcc
+BuildRequires:  cygwin-aarch64-gcc-c++
+BuildRequires:  cygwin-aarch64-w32api-headers
+BuildRequires:  cygwin-aarch64-w32api-runtime
+%endif
+
 BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  gcc
@@ -63,17 +76,24 @@ BuildRequires:  texinfo
 Cygwin cross-compiler runtime, base libraries.
 
 %package -n cygwin32
-Summary:    Cygwin32 cross-compiler runtime
+Summary:    Cygwin i686 cross-compiler runtime
 Requires:   cygwin32-w32api-runtime
 
 %description -n cygwin32
 Cygwin 32-bit cross-compiler runtime, base libraries.
 
 %package -n cygwin64
-Summary:    Cygwin64 cross-compiler runtime
+Summary:    Cygwin x86_64 cross-compiler runtime
 Requires:   cygwin64-w32api-runtime
 
 %description -n cygwin64
+Cygwin 64-bit cross-compiler runtime, base libraries.
+
+%package -n cygwin-aarch64
+Summary:    Cygwin aarch64 cross-compiler runtime
+Requires:   cygwin-aarch64-w32api-runtime
+
+%description -n cygwin-aarch64
 Cygwin 64-bit cross-compiler runtime, base libraries.
 
 
@@ -111,12 +131,25 @@ pushd build_64bit
 popd
 %endif
 
+%if 0%{?cygwin_build_aarch64} == 1
+mkdir -p build_aarch64
+pushd build_aarch64
+`pwd`/../configure \
+  --prefix=%{cygwin_aarch64_prefix} \
+  --build=%_build --host=%_host \
+  --target=%{cygwin_aarch64_target} \
+  --without-mingw-progs --disable-cygserver --disable-dumper --disable-utils \
+  --disable-doc
+popd
+%endif
+
 %cygwin_make
 
 
 %install
 CYGWIN32_MAKE_ARGS="tooldir=%{cygwin32_prefix}" \
 CYGWIN64_MAKE_ARGS="tooldir=%{cygwin64_prefix}" \
+CYGWIN_AARCH64_MAKE_ARGS="tooldir=%{cygwin_aarch64_prefix}" \
 %cygwin_make_install
 
 # remove files not needed for cross-compiling
@@ -132,6 +165,12 @@ rm -f  $RPM_BUILD_ROOT%{cygwin64_bindir}/*.exe
 rm -fr $RPM_BUILD_ROOT%{cygwin64_sbindir}
 rm -fr $RPM_BUILD_ROOT%{cygwin64_datadir}
 
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_prefix}/etc
+rm -f  $RPM_BUILD_ROOT%{cygwin_aarch64_bindir}/*cygserver-config
+rm -f  $RPM_BUILD_ROOT%{cygwin_aarch64_bindir}/*.exe
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_sbindir}
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_datadir}
+
 # these are provided by other packages
 rm -fr $RPM_BUILD_ROOT%{cygwin32_includedir}/iconv.h
 rm -fr $RPM_BUILD_ROOT%{cygwin32_includedir}/unctrl.h
@@ -140,6 +179,13 @@ rm -fr $RPM_BUILD_ROOT%{cygwin32_includedir}/rpc/
 rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/iconv.h
 rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/unctrl.h
 rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
+
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_includedir}/iconv.h
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_includedir}/unctrl.h
+rm -fr $RPM_BUILD_ROOT%{cygwin_aarch64_includedir}/rpc/
+
+# producing debug info is not very useful
+rm -fr $RPM_BUILD_ROOT/usr/lib/debug/
 
 %if 0%{?cygwin_build_32bit} == 1
 %files -n cygwin32
@@ -157,8 +203,19 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 %{cygwin64_libdir}/*
 %endif
 
+%if 0%{?cygwin_build_aarch64} == 1
+%files -n cygwin-aarch64
+%doc winsup/COPYING winsup/CYGWIN_LICENSE
+%{cygwin_aarch64_bindir}/cygwin1.dll
+%{cygwin_aarch64_includedir}/*
+%{cygwin_aarch64_libdir}/*
+%endif
+
 
 %changelog
+* Mon Sep 14 2026 Jon Turney <jon.turney@dronecode.org.uk> - 3.7.0-0.20260916.2a7858e9
+- add aarch64
+
 * Mon Sep 14 2026 Jon Turney <jon.turney@dronecode.org.uk> - 3.7.0-0.20260914.2ac3428a
 - new version
 
