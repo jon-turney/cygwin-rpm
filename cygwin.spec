@@ -1,8 +1,8 @@
 %{?cygwin_package_header}
 
-%global snapshot_commit 3bd5b517f3fe46bdff8e70f1e6038bd0853ddc95
+%global snapshot_commit 6926523688bab730ae1b56f24ad6fb203b7350af
 %global snapshot_shortcommit %(echo %{snapshot_commit} | cut -c1-8)
-%global snapshot_date 20260523
+%global snapshot_date 20260529
 
 Name:           cygwin
 Version:        3.7.0
