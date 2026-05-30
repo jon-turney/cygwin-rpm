@@ -1,0 +1,26 @@
+From fc80d57da0befd684e776b1fee240c33f5a7e27f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Radek=20Barto=C5=88?= <radek.barton@microsoft.com>
+Date: Thu, 19 Jun 2025 14:27:50 +0200
+Subject: [PATCH 4/4] Workaround for undefined reference to
+ `__pthread_normal_mutex_initializer_np` due to the relocation issue
+
+---
+ winsup/cygwin/include/pthread.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/winsup/cygwin/include/pthread.h b/winsup/cygwin/include/pthread.h
+index 01cabee8d..72d2ed9b3 100644
+--- a/winsup/cygwin/include/pthread.h
++++ b/winsup/cygwin/include/pthread.h
+@@ -55,7 +55,7 @@ extern "C"
+ #define PTHREAD_BARRIER_SERIAL_THREAD (-1)
+ 
+ /* This condition matches the one in <sys/_pthreadtypes.h> */
+-#if !defined(__INSIDE_CYGWIN__) || !defined(__cplusplus)
++#if (!defined(__INSIDE_CYGWIN__) || !defined(__cplusplus)) && !defined(__aarch64__)
+ /* Constants for initializer macros */
+ extern struct __pthread_mutex_t __pthread_recursive_mutex_initializer_np;
+ extern struct __pthread_mutex_t __pthread_normal_mutex_initializer_np;
+-- 
+2.51.0
+

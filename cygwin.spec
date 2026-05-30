@@ -2,7 +2,7 @@
 
 %global snapshot_commit 6926523688bab730ae1b56f24ad6fb203b7350af
 %global snapshot_shortcommit %(echo %{snapshot_commit} | cut -c1-8)
-%global snapshot_date 20260529
+%global snapshot_date 20260530
 
 Name:           cygwin
 Version:        3.7.0
@@ -40,6 +40,7 @@ Patch4:         0001-Pass-include-directory-to-winres.patch
 Patch10:        0001-Workarounds-needed-to-make-Cygwin-build-for-AArch64-.patch
 Patch11:        0002-Cygwin-Fix-typo-in-remainderl.S.patch
 Patch12:        0003-Workaround-absence-of-AllocConsoleWithOptions-in-w32.patch
+Patch13:        0004-Workaround-for-undefined-reference-to-__pthread_norm.patch
 
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
