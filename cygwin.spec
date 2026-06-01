@@ -24,6 +24,9 @@ BuildArch:      noarch
 # x86 is unsupported since 3.4.0
 %undefine cygwin_build_32bit
 
+# generic (multiarch) strip seems to damage x86_64 archives
+%global __strip /bin/true
+
 # downloaded and extracted by .copr/Makefile
 %if "%{?snapshot_commit}" != ""
 %define git_ref %{snapshot_commit}
