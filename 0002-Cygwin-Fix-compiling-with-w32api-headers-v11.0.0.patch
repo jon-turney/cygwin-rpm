@@ -1,0 +1,41 @@
+From b6ac705790025bd4705d13c45ab5e60354645a0a Mon Sep 17 00:00:00 2001
+From: Biswapriyo Nath <nathbappai@gmail.com>
+Date: Sun, 30 Apr 2023 00:03:21 +0530
+Subject: [PATCH 2/2] Cygwin: Fix compiling with w32api-headers v11.0.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This solves redefinition of FILE_CS_FLAG_CASE_SENSITIVE_DIR in winnt.h
+and fixes the following compiler errors
+
+ntdll.h:523:3: error: expected identifier before numeric constant
+  523 |   FILE_CS_FLAG_CASE_SENSITIVE_DIR                       = 0x01
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ntdll.h:522:1: note: to match this ‘{’
+  522 | {
+      | ^
+---
+ winsup/cygwin/ntdll.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/winsup/cygwin/ntdll.h b/winsup/cygwin/ntdll.h
+index 2d9830b35..43f6d2c94 100644
+--- a/winsup/cygwin/ntdll.h
++++ b/winsup/cygwin/ntdll.h
+@@ -517,10 +517,12 @@ enum
+   FILE_RENAME_IGNORE_READONLY_ATTRIBUTE			= 0x40
+ };
+ 
++#if (__MINGW64_VERSION_MAJOR < 11)
+ enum
+ {
+   FILE_CS_FLAG_CASE_SENSITIVE_DIR			= 0x01
+ };
++#endif
+ 
+ enum
+ {
+-- 
+2.51.0
+
