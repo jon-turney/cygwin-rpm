@@ -16,19 +16,25 @@ Source0:        newlib-cygwin-%{version}.tar.bz2
 Patch1:         0001-Cygwin-Fix-compatibility-with-w32api-headers-v13.patch
 Patch2:         0002-Cygwin-Fix-compiling-with-w32api-headers-v11.0.0.patch
 
+BuildRequires:  cygwin-filesystem-base
+
+%if 0%{?cygwin_build_32bit} == 1
 BuildRequires:  cygwin32-filesystem >= 7
 BuildRequires:  cygwin32-binutils
 BuildRequires:  cygwin32-gcc
 BuildRequires:  cygwin32-gcc-c++
 BuildRequires:  cygwin32-w32api-headers
 BuildRequires:  cygwin32-w32api-runtime
+%endif
 
+%if 0%{?cygwin_build_64bit} == 1
 BuildRequires:  cygwin64-filesystem >= 7
 BuildRequires:  cygwin64-binutils
 BuildRequires:  cygwin64-gcc
 BuildRequires:  cygwin64-gcc-c++
 BuildRequires:  cygwin64-w32api-headers
 BuildRequires:  cygwin64-w32api-runtime
+%endif
 
 BuildRequires:  autoconf
 BuildRequires:  automake
@@ -67,6 +73,7 @@ winsup/autogen.sh
 
 %build
 export CFLAGS_FOR_TARGET="-Wno-error -Wno-narrowing"
+%if 0%{?cygwin_build_32bit} == 1
 mkdir -p build_32bit
 pushd build_32bit
 `pwd`/../configure \
@@ -75,7 +82,9 @@ pushd build_32bit
   --target=%{cygwin32_target} \
   --with-cross-bootstrap
 popd
+%endif
 
+%if 0%{?cygwin_build_64bit} == 1
 mkdir -p build_64bit
 pushd build_64bit
 `pwd`/../configure \
@@ -84,6 +93,7 @@ pushd build_64bit
   --target=%{cygwin64_target} \
   --with-cross-bootstrap
 popd
+%endif
 
 %cygwin_make
 
@@ -116,17 +126,21 @@ rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/unctrl.h
 rm -fr $RPM_BUILD_ROOT%{cygwin64_includedir}/rpc/
 
 
+%if 0%{?cygwin_build_32bit} == 1
 %files -n cygwin32
 %doc winsup/COPYING winsup/CYGWIN_LICENSE
 %{cygwin32_bindir}/cygwin1.dll
 %{cygwin32_includedir}/*
 %{cygwin32_libdir}/*
+%endif
 
+%if 0%{?cygwin_build_64bit} == 1
 %files -n cygwin64
 %doc winsup/COPYING winsup/CYGWIN_LICENSE
 %{cygwin64_bindir}/cygwin1.dll
 %{cygwin64_includedir}/*
 %{cygwin64_libdir}/*
+%endif
 
 
 %changelog
