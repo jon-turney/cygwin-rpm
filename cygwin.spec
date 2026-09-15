@@ -36,6 +36,7 @@ Source0:        newlib-cygwin-%{git_ref}.tar.bz2
 # patches to build aarch64 for bootstrapping
 # (don't expect the cygwin DLL this produces to work!)
 Patch1:         0001-Workarounds-needed-to-make-Cygwin-build-for-AArch64-.patch
+Patch13:        0004-Workaround-for-undefined-reference-to-__pthread_norm.patch
 
 BuildRequires:  cygwin-filesystem-base
 
