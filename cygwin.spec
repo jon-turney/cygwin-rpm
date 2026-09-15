@@ -41,6 +41,7 @@ Patch4:         0001-Pass-include-directory-to-winres.patch
 # patches with minimal stubs to build aarch64 for bootstrapping
 # (don't expect the cygwin DLL this produces to work!)
 Patch10:        0001-Workarounds-needed-to-make-Cygwin-build-for-AArch64-.patch
+Patch13:        0004-Workaround-for-undefined-reference-to-__pthread_norm.patch
 
 BuildRequires:  cygwin-filesystem-base
 
