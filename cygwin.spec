@@ -1,8 +1,8 @@
 %{?cygwin_package_header}
 
-%global snapshot_commit 2a7858e9168600d3fa8d59475723422c215e3481
+%global snapshot_commit dd317d0b2b2877edf54abceef4ceb9f20bac1d35
 %global snapshot_shortcommit %(echo %{snapshot_commit} | cut -c1-8)
-%global snapshot_date 20260916
+%global snapshot_date 20260928
 
 Name:           cygwin
 Version:        3.7.0
@@ -32,10 +32,6 @@ BuildArch:      noarch
 %endif
 
 Source0:        newlib-cygwin-%{git_ref}.tar.bz2
-
-# patches to build aarch64 for bootstrapping
-# (don't expect the cygwin DLL this produces to work!)
-Patch1:         0001-Workarounds-needed-to-make-Cygwin-build-for-AArch64-.patch
 
 BuildRequires:  cygwin-filesystem-base
 
@@ -105,7 +101,8 @@ winsup/autogen.sh
 
 
 %build
-export CFLAGS_FOR_TARGET="-Wno-error"
+export CFLAGS_FOR_TARGET="-Wno-error -O0"
+export CXXFLAGS_FOR_TARGET="-Wno-error -O0"
 
 %if 0%{?cygwin_build_32bit} == 1
 mkdir -p build_32bit
@@ -213,6 +210,9 @@ rm -fr $RPM_BUILD_ROOT/usr/lib/debug/
 
 
 %changelog
+* Thu Sep 24 2026 Jon Turney <jon.turney@dronecode.org.uk> - 3.7.0-0.20260928.dd317d0b
+- new version
+
 * Mon Sep 14 2026 Jon Turney <jon.turney@dronecode.org.uk> - 3.7.0-0.20260916.2a7858e9
 - add aarch64
 
